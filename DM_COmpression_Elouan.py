@@ -45,11 +45,3 @@ if __name__ == "__main__":
     img = load("./test.png")
     
     print(psnr(img, defragment_4x4(fragment_4x4(img))))
-
-"""
-n%4 = 1, 2, 3
-4 - n%4
-
-cols_4 = cols + 4 - n%4
-
-"""
