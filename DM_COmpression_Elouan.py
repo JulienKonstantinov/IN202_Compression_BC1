@@ -112,6 +112,9 @@ def fragment_4x4(image_array):
     return frag_list
 
 
+# QUESTION 3
+
+
 def defragment_4x4(array_list):
     """
     Prends en entrée une liste 2D de la forme définie précédemment
@@ -126,3 +129,38 @@ def defragment_4x4(array_list):
             defrag_array[i * 4 : i * 4 + 4, j * 4 : j * 4 + 4] = array_list[i][j]
 
     return defrag_array
+
+
+# QUESTION 4
+
+
+def tronque(n: int, p: int) -> bin:
+    """
+    Prends un entier et en retire les p bits non significatifs
+
+    Paramètres:
+        n: entier à tronquer
+        p: nb de bits à tronquer
+    """
+    n = bin(n)[:-p]
+    return n
+
+
+def get_palette(a, b):
+    """
+    Génère la palette associée à a et b
+    
+    Paramètres:
+        a, b: np.array([3], dtype=np.uint8)
+    """
+
+    palette = np.zeros([4, 3], dtype=np.uint8)
+    # palette[0] = a
+    # palette[3] = b
+    # palette[1] = 2/3 * a + b/3
+    # palette[2] = a/3 + 2/3 * b
+
+    for i in range(4):
+        palette[i] = a * (3-i)/3 + b * i/3
+    return palette
+
