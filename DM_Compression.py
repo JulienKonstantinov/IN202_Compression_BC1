@@ -61,10 +61,14 @@ def padding(matrice):
 
     if reste_lignes != 0:
         lignes_a_ajouter = 4 - reste_lignes
+    else:
+        lignes_a_ajouter = 0
 
     reste_colonnes = matrice.shape[1] % 4
     if reste_colonnes != 0:
         colonnes_a_ajouter = 4 - reste_colonnes
+    else:
+        colonnes_a_ajouter = 0
 
     # on crée une nouvelle matrice de la bonne taile que l'on remplit
     matrice2 = np.zeros(
@@ -129,6 +133,39 @@ def defragment_4x4(array_list):
 
     return defrag_array
 
+# QUESTION 4
+
+
+def tronque(n: int, p: int) -> bin:
+    """
+    Prends un entier et en retire les p bits non significatifs
+
+    Paramètres:
+        n: entier à tronquer
+        p: nb de bits à tronquer
+    """
+    n = bin(n)[:-p]
+    return n
+
+
+def get_palette(a, b):
+    """
+    Génère la palette associée à a et b
+    
+    Paramètres:
+        a, b: np.array([3], dtype=np.uint8)
+    """
+
+    palette = np.zeros([4, 3], dtype=np.uint8)
+    # palette[0] = a
+    # palette[3] = b
+    # palette[1] = 2/3 * a + b/3
+    # palette[2] = a/3 + 2/3 * b
+
+    for i in range(4):
+        palette[i] = a * (3-i)/3 + b * i/3
+    return palette
+
 
 # QUESTION 5
 
@@ -138,11 +175,12 @@ def find_color(palette, pixel):
     for i in range(4): #on parcourt les lignes de la palette
         somme=0
         for j in range(3): #on parcourt les colonnes de la palette
-            somme+=(abs(pixel[j]-palette[i][j])) #on fait la somme des écarts en valeurs absolues entre les coordonnées RGB du pixels et d'une couleur de la palette pour toutes les couleurs de la palette
+            # oui mais comme c'est du UNSIGNED int on a un overflow
+            # somme+=(abs(pixel[j]-palette[i][j])) #on fait la somme des écarts en valeurs absolues entre les coordonnées RGB du pixels et d'une couleur de la palette pour toutes les couleurs de la palette
+            if pixel[j] > palette[i][j]:
+                somme+= pixel[j]-palette[i][j]
+            else:
+                somme+= palette[i][j]-pixel[j]
         good_color.append(somme) #on stockes toutes les sommes dans une liste
     minimum=min(good_color) 
     return palette[good_color.index(minimum)] #on retourne la couleur de la palette dont l'écart des coordonnées RGB est le plus proche du pixel
-
-print(find_color([[4,5,6],[7,8,9],[1,2,3],[4,5,7]],[1,6,9]))
-
-            
