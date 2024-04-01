@@ -132,8 +132,8 @@ def defragment_4x4(array_list):
 
 # QUESTION 5
 
-good_color=[]
 def find_color(palette, pixel):
+    good_color=[]
     '''fonction qui permet de trouver la couleur d'une palette la plus proche de la couleur d'un pixel'''
     for i in range(4): #on parcourt les lignes de la palette
         somme=0
@@ -143,6 +143,6 @@ def find_color(palette, pixel):
     minimum=min(good_color) 
     return palette[good_color.index(minimum)] #on retourne la couleur de la palette dont l'écart des coordonnées RGB est le plus proche du pixel
 
-print(find_color([[4,5,6],[7,8,9],[1,2,3],[4,5,6]],[1,6,9]))
+print(find_color([[4,5,6],[7,8,9],[1,2,3],[4,5,7]],[1,6,9]))
 
             
