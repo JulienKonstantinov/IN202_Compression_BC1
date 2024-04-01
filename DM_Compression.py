@@ -133,8 +133,8 @@ def defragment_4x4(array_list):
 # QUESTION 5
 
 def find_color(palette, pixel):
-    good_color=[]
     '''fonction qui permet de trouver la couleur d'une palette la plus proche de la couleur d'un pixel'''
+    good_color=[]
     for i in range(4): #on parcourt les lignes de la palette
         somme=0
         for j in range(3): #on parcourt les colonnes de la palette
