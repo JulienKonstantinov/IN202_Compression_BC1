@@ -132,7 +132,6 @@ def defragment_4x4(array_list):
             defrag_array[i * 4 : i * 4 + 4, j * 4 : j * 4 + 4] = array_list[i][j]
 
     return defrag_array
-
 # QUESTION 4
 
 
