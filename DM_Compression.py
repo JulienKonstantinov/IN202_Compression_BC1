@@ -141,7 +141,7 @@ def tronque(n: int, p: int) -> bin:
         n: entier à tronquer
         p: nb de bits à tronquer
     """
-    n = bin(n)[:-p]
+    n = n >> p
     return n
 
 
@@ -154,13 +154,11 @@ def get_palette(a, b):
     """
 
     palette = np.zeros([4, 3], dtype=np.uint8)
-    # palette[0] = a
-    # palette[3] = b
-    # palette[1] = 2/3 * a + b/3
-    # palette[2] = a/3 + 2/3 * b
+    palette[0] = a
+    palette[3] = b
+    palette[1] = 2/3 * a + b/3
+    palette[2] = a/3 + 2/3 * b
 
-    for i in range(4):
-        palette[i] = a * (3-i)/3 + b * i/3
     return palette
 
 
@@ -169,15 +167,35 @@ def get_palette(a, b):
 def find_color(palette, pixel):
     '''fonction qui permet de trouver la couleur d'une palette la plus proche de la couleur d'un pixel'''
     good_color=[]
-    for i in range(4): #on parcourt les lignes de la palette
-        somme=0
-        for j in range(3): #on parcourt les colonnes de la palette
-            # oui mais comme c'est du UNSIGNED int on a un overflow
-            # somme+=(abs(pixel[j]-palette[i][j])) #on fait la somme des écarts en valeurs absolues entre les coordonnées RGB du pixels et d'une couleur de la palette pour toutes les couleurs de la palette
-            if pixel[j] > palette[i][j]:
-                somme+= pixel[j]-palette[i][j]
-            else:
-                somme+= palette[i][j]-pixel[j]
-        good_color.append(somme) #on stockes toutes les sommes dans une liste
+    for i in range(4): #on parcourt les pixels de la palette
+        good_color.append(np.linalg.norm(pixel.astype(int) - palette[i])) #on stockes toutes les distances euclidiennes dans une liste
     minimum=min(good_color) 
-    return palette[good_color.index(minimum)] #on retourne la couleur de la palette dont l'écart des coordonnées RGB est le plus proche du pixel
+    return good_color.index(minimum) #on retourne l'indice de la couleur de la palette dont l'écart des coordonnées RGB est le plus proche du pixel
+
+# QUESTION 6
+
+def color_as_sig(color):
+    sig = 0
+    sig += tronque(color[2], 3)
+    sig = sig << 6
+    sig += tronque(color[1], 2)
+    sig = sig << 5
+    sig += tronque(color[0], 3)
+
+    return sig
+
+def patch_signature(patch, a, b):
+    palette = get_palette(a, b)
+    signature = 0
+    for i in range(3, -1, -1):
+        for j in range(3, -1, -1):
+            color = find_color(palette, patch[i, j])
+            signature = signature << 2
+            signature += color
+
+    signature = signature << 16
+    signature += color_as_sig(b)
+    signature = signature << 16
+    signature += color_as_sig(a)
+    
+    return signature

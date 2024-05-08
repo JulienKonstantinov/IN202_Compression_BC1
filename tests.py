@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from DM_Compression import padding, remove_padding, fragment_4x4, defragment_4x4, tronque, get_palette, find_color
+from DM_Compression import padding, remove_padding, fragment_4x4, defragment_4x4, tronque, get_palette, find_color, patch_signature
 
 class TestBC1Functions(unittest.TestCase):
     def setUp(self):
@@ -33,19 +33,28 @@ class TestBC1Functions(unittest.TestCase):
                         "Defragmented array is not equal to original array")
 
     def test_tronque(self):
-        result = tronque(15, 2)
+        result = bin(tronque(15, 2))
         self.assertEqual(result, "0b11", "Truncation not as expected")
 
     def test_get_palette(self):
-        palette = get_palette(np.array([0, 0, 0], dtype=np.uint8), np.array([255, 255, 255], dtype=np.uint8))
+        palette = get_palette(np.array([0, 0, 0], dtype=np.uint8), np.array([211, 211, 211], dtype=np.uint8))
         self.assertEqual(palette.shape, (4, 3), "Palette has incorrect shape")
 
     def test_find_color(self):
-        palette = np.array([[0, 0, 0], [255, 255, 255], [127, 127, 127], [64, 64, 64]], dtype=np.uint8)
-        pixel = np.array([100, 100, 100], dtype=np.uint8)
+        a, b = np.array([0, 0, 0], dtype=np.uint8), np.array([211, 211, 211], dtype=np.uint8)
+        palette = get_palette(a, b)
+        
+        pixel = np.array([80, 108, 70], dtype=np.uint8)
         color = find_color(palette, pixel)
-        self.assertTrue(np.array_equal(color, np.array([127, 127, 127], dtype=np.uint8)),
-                        "Incorrect color found")
+
+        self.assertEqual(color, 1, "Incorrect color index found")
+    
+    def test_sig_size(self):
+        fragmented_list = fragment_4x4(self.image_array)
+
+        sig = patch_signature(fragmented_list[0][0], np.array([0, 0, 0], dtype=np.uint8), np.array([211, 211, 211], dtype=np.uint8))
+
+        self.assertEqual(len(bin(sig))-2, 64, "Signature has wrong size")
 
 if __name__ == "__main__":
     unittest.main()
