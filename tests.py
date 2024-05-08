@@ -41,7 +41,7 @@ class TestBC1Functions(unittest.TestCase):
         self.assertEqual(palette.shape, (4, 3), "Palette has incorrect shape")
 
     def test_find_color(self):
-        palette = np.array([[0, 0, 0], [255, 255, 255], [127, 127, 127], [64,  , 64]], dtype=np.uint8)
+        palette = np.array([[0, 0, 0], [255, 255, 255], [127, 127, 127], [64, 64, 64]], dtype=np.uint8)
         pixel = np.array([100, 100, 100], dtype=np.uint8)
         color = find_color(palette, pixel)
         self.assertTrue(np.array_equal(color, np.array([127, 127, 127], dtype=np.uint8)),

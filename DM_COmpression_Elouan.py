@@ -59,10 +59,14 @@ def padding(matrice):
 
     if reste_lignes != 0:
         lignes_a_ajouter = 4 - reste_lignes
+    else:
+        lignes_a_ajouter = 0
 
     reste_colonnes = matrice.shape[1] % 4
     if reste_colonnes != 0:
         colonnes_a_ajouter = 4 - reste_colonnes
+    else:
+        colonnes_a_ajouter = 0
 
     # on crée une nouvelle matrice de la bonne taile que l'on remplit
     matrice2 = np.zeros(
@@ -112,9 +116,6 @@ def fragment_4x4(image_array):
     return frag_list
 
 
-# QUESTION 3
-
-
 def defragment_4x4(array_list):
     """
     Prends en entrée une liste 2D de la forme définie précédemment
@@ -129,8 +130,6 @@ def defragment_4x4(array_list):
             defrag_array[i * 4 : i * 4 + 4, j * 4 : j * 4 + 4] = array_list[i][j]
 
     return defrag_array
-
-
 # QUESTION 4
 
 
@@ -164,3 +163,21 @@ def get_palette(a, b):
         palette[i] = a * (3-i)/3 + b * i/3
     return palette
 
+
+# QUESTION 5
+
+def find_color(palette, pixel):
+    '''fonction qui permet de trouver la couleur d'une palette la plus proche de la couleur d'un pixel'''
+    good_color=[]
+    for i in range(4): #on parcourt les lignes de la palette
+        somme=0
+        for j in range(3): #on parcourt les colonnes de la palette
+            # oui mais comme c'est du UNSIGNED int on a un overflow
+            # somme+=(abs(pixel[j]-palette[i][j])) #on fait la somme des écarts en valeurs absolues entre les coordonnées RGB du pixels et d'une couleur de la palette pour toutes les couleurs de la palette
+            if pixel[j] > palette[i][j]:
+                somme+= pixel[j]-palette[i][j]
+            else:
+                somme+= palette[i][j]-pixel[j]
+        good_color.append(somme) #on stockes toutes les sommes dans une liste
+    minimum=min(good_color) 
+    return palette[good_color.index(minimum)] #on retourne la couleur de la palette dont l'écart des coordonnées RGB est le plus proche du pixel
