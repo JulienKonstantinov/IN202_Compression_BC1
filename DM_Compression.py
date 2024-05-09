@@ -4,6 +4,7 @@ import numpy as np
 import scipy as sp
 import os
 from math import log10, sqrt
+from tkinter.filedialog import asksaveasfilename
 
 
 def load(filename):
@@ -130,6 +131,7 @@ def defragment_4x4(array_list):
             defrag_array[i * 4 : i * 4 + 4, j * 4 : j * 4 + 4] = array_list[i][j]
 
     return defrag_array
+
 # QUESTION 4
 
 
@@ -199,3 +201,32 @@ def patch_signature(patch, a, b):
     signature += color_as_sig(a)
     
     return signature
+
+#Partie 3 question 1
+
+def find_a_b(patch):
+    r_max=0
+    g_max=0
+    b_max=0
+    for i in range(len(patch)):
+        if patch[i][0]>r_max:
+            r_max=patch[i][0]
+        if patch[i][1]>g_max:
+            g_max=patch[i][1]
+        if patch[i][2]>b_max:
+            b_max=patch[i][2]
+    return(r_max, g_max, b_max)
+
+
+# QUESTION 7 et 8
+def create_file(image,a,b):
+    dim = padding(image)
+    ftypes = (("text files", "*.txt"), ("All files", "*.*"))
+    path=asksaveasfilename(filetypes=ftypes)
+    file = open(path,'w')
+    file.write("BC1"+"\n"+str(dim.shape[0])+" "+str(dim.shape[1]))
+    patch=fragment_4x4(dim)
+    for i in len(patch):
+        print(i)
+        file.write(patch_signature(patch[i],a,b)+"\n")
+        
