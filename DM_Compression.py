@@ -254,10 +254,7 @@ def find_a_b_2(patch):
     plus_b=np.mean(b_list)+np.std(b_list)
 
     a=(minus_r,minus_g,minus_b)
-    
     b=(plus_r,plus_g,plus_b)
-    
-    print(np.mean(r_list),np.std(r_list))
     return(a,b)
 
 
