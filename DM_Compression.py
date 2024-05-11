@@ -4,7 +4,7 @@ import numpy as np
 import scipy as sp
 import os
 from math import log10, sqrt
-from tkinter.filedialog import asksaveasfilename
+from tkinter.filedialog import askopenfilename,asksaveasfilename
 
 
 def load(filename):
@@ -143,7 +143,8 @@ def tronque(n: int, p: int) -> bin:
         n: entier à tronquer
         p: nb de bits à tronquer
     """
-    n = n >> p
+    if p>0:
+        n = n >> p
     return n
 
 
@@ -191,7 +192,7 @@ def patch_signature(patch, a, b):
     signature = 0
     for i in range(3, -1, -1):
         for j in range(3, -1, -1):
-            color = find_color(palette, patch[i, j])
+            color = find_color(palette, patch[i,j])
             signature = signature << 2
             signature += color
 
@@ -202,20 +203,63 @@ def patch_signature(patch, a, b):
     
     return signature
 
-#Partie 3 question 1
+
+# Partie 3 méthode 1
 
 def find_a_b(patch):
-    r_max=0
-    g_max=0
-    b_max=0
+    r_list=[]
+    g_list=[]
+    b_list=[]
     for i in range(len(patch)):
-        if patch[i][0]>r_max:
-            r_max=patch[i][0]
-        if patch[i][1]>g_max:
-            g_max=patch[i][1]
-        if patch[i][2]>b_max:
-            b_max=patch[i][2]
-    return(r_max, g_max, b_max)
+        for j in range(len(patch[i])):
+            r_list.append(patch[i,j][0])
+            g_list.append(patch[i,j][1])
+            b_list.append(patch[i,j][2])
+    
+    min_r=min(r_list)
+    min_g=min(g_list)
+    min_b=min(b_list)
+    max_r=max(r_list)
+    max_g=max(g_list)
+    max_b=max(b_list)
+
+    a=(tronque(min_r,(len(bin(min_r))-2)-5),
+       tronque(min_g,(len(bin(min_g))-2)-6),
+       tronque(min_b,(len(bin(min_b))-2)-5))
+    
+    b=(tronque(max_r,(len(bin(max_r))-2)-5),
+       tronque(max_g,(len(bin(max_g))-2)-6),
+       tronque(max_b,(len(bin(max_b))-2)-5))
+    
+    return(a,b)
+
+
+# Partie 3 méthode 2
+
+def find_a_b_2(patch):
+    r_list=[]
+    g_list=[]
+    b_list=[]
+    for i in range(len(patch)):
+        for j in range(len(patch[i])):
+            r_list.append(patch[i,j][0])
+            g_list.append(patch[i,j][1])
+            b_list.append(patch[i,j][2])
+
+    minus_r=np.mean(r_list)-np.std(r_list)
+    minus_g=np.mean(g_list)-np.std(g_list)
+    minus_b=np.mean(b_list)-np.std(b_list)
+    plus_r=np.mean(r_list)+np.std(r_list)
+    plus_g=np.mean(g_list)+np.std(g_list)
+    plus_b=np.mean(b_list)+np.std(b_list)
+
+    a=(minus_r,minus_g,minus_b)
+    
+    b=(plus_r,plus_g,plus_b)
+    
+    print(np.mean(r_list),np.std(r_list))
+    return(a,b)
+
 
 
 # QUESTION 7 et 8
@@ -229,4 +273,20 @@ def create_file(image,a,b):
     for i in len(patch):
         print(i)
         file.write(patch_signature(patch[i],a,b)+"\n")
+
+
+
+# QUESTION 9 et 10
         
+def read_file(path):
+    list_patch=[]
+    file=open(path,'r')
+    read=file.readline()
+    if read=="BC1\n":
+        read=file.readline()
+        while(read!=""):
+            read=file.readline()
+            list_patch.append(read[0:-1])
+    return list_patch
+
+
