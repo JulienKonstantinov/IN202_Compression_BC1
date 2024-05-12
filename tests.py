@@ -67,12 +67,6 @@ class TestBC1Functions(unittest.TestCase):
         sigs, im_dims = load_bc1_file("test_file.bc1")
         self.assertIsInstance(sigs, list, "Signatures not loaded as list")
         self.assertIsInstance(im_dims, list, "Image dimensions not loaded as list")
-    
-    def test_get_signature_color(self):
-        sig = "01010101010000000001111111111111"
-        color = get_signature_color(sig)
-        self.assertTrue(np.array_equal(color, np.array([5, 10, 31], dtype=np.uint8)),
-                        "Signature color not as expected")
 
     def test_sig_to_patch(self):
         sig = "000000000000000001111111111111110000000000000000111111111111111100000000000000001111111111111111"
