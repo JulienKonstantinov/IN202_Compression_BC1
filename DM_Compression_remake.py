@@ -49,6 +49,12 @@ def psnr(original, compressed):
 ### QUESTION 1
 
 def get_final_shape(matrice):
+    """
+    Retourne la taille finale, divisible par 4, d'une matrice
+
+    Paramètres:
+        matrice: la matrice concernée
+    """
     reste_lignes = matrice.shape[0] % 4
 
     if reste_lignes != 0:
@@ -168,7 +174,9 @@ def get_palette(a, b):
 ### QUESTION 5
 
 def find_color(palette, pixel):
-    '''fonction qui permet de trouver la couleur d'une palette la plus proche de la couleur d'un pixel'''
+    """
+    Trouve la couleur la plus proche dans une palette d'un pixel
+    """
     good_color=[]
     for i in range(4): #on parcourt les pixels de la palette
         good_color.append(np.linalg.norm(pixel.astype(int) - palette[i])) #on stockes toutes les distances euclidiennes dans une liste
@@ -178,6 +186,9 @@ def find_color(palette, pixel):
 ### QUESTION  6
 
 def get_color_signature(color):
+    """
+    Retourne la signature d'une couleur, en 5:6:5
+    """
     sig = ""
     for k in range(3):
         if k == 1:
@@ -188,16 +199,17 @@ def get_color_signature(color):
     return sig
 
 def patch_signature(patch, a, b):
+    """
+    Retourne la signature associée à un patch et ses 2 couleurs a et b
+    """
     palette = get_palette(a, b)
     signature = ""
     
     signature += get_color_signature(a)
     signature += get_color_signature(b)
-    # print(palette)
     for i in range(4):
         for j in range(4):
             signature += bin(find_color(palette, patch[i, j]))[2:].zfill(2)
-            # print(find_color(palette, patch[i, j]), bin(find_color(palette, patch[i, j]))[2:].zfill(2))
     signature = int(signature[::-1], 2)
     
     return signature
@@ -216,6 +228,9 @@ def get_color(r, g, b):
 
 
 def find_a_b(patch):
+    """
+    Trouve a et b avec la méthode du min max
+    """
     r_list=[]
     g_list=[]
     b_list=[]
@@ -243,6 +258,9 @@ def find_a_b(patch):
 # Partie 3 méthode 2
 
 def find_a_b_2(patch):
+    """
+    Trouve a et b avec la méthode de la dérivation standard
+    """
     r_list=[]
     g_list=[]
     b_list=[]
@@ -275,6 +293,14 @@ def find_a_b_2(patch):
 ### QUESTION 7 ET 8
 
 def create_file(image, find_color_method=1, path=None):
+    """
+    Transforme une image, chargée dans une matrice, en un fichier BC1
+
+    Paramètres:
+        image: la matrice de l'image
+        find_color_method: valeurs possibles: 1 ou 2, si 1 alors minmax, si 2 alors moyenne et dérivation standard
+        path: chemin du fichier à écrire
+    """
     if not path:
         ftypes = (("BC1 Images", "*.bc1"), ("All files", "*.*"))
         path=asksaveasfilename(filetypes=ftypes)
@@ -300,6 +326,9 @@ def create_file(image, find_color_method=1, path=None):
 ### QUESTION 9
 
 def load_bc1_file(path=None):
+    """
+    Charge le fichier donné, retourne la liste des signatures des patch et la dimension de l'image
+    """
     if not path:
         ftypes = (("BC1 Images", "*.bc1"), ("All files", "*.*"))
         path = askopenfilename(filetypes=ftypes)
@@ -323,51 +352,48 @@ def load_bc1_file(path=None):
 ### QUESTION 10
 
 def get_signature_color(sig):
+    """
+    Transforme la partie réservée à la signature d'une couleur en une couleur
+    """
     r, g, b = sig[:5], sig[5:11], sig[11:]
     return np.array([int(r, 2) << 3, int(g, 2) << 2, int(b, 2) << 3], dtype=np.uint8)
 
 def sig_to_patch(sig):
+    """
+    Transforme la signature d'un patch en un patch
+    """
     a, b = sig[0:16], sig[16:32]
     a = get_signature_color(a)
     b = get_signature_color(b)
 
     palette = get_palette(a, b)
-    # print(palette)
     patch = np.zeros((4, 4, 3), dtype=np.uint8)
 
     sig = sig[32:]
-    # print(len(sig))
     for i in range(4):
         for j in range(4):
             
             num = sig[((i*4)+j)*2] + sig[((i*4)+j)*2 + 1]
             num = int(num, 2)
-            # print(num)
             patch[i, j] = palette[num]
-            # print(palette, palette[num], num)
     
     return patch
 
 def uncompress(sig_list, dims):
+    """
+    Prends la liste des signatures et retourne l'image fragmentée 
+    """
     padded_dims = get_final_shape(np.empty(dims, dtype=np.uint8))
     frag_list = []
-    print(sig_list)
+
     for j in range(len(sig_list)):
         sig_list[j] = sig_to_patch(sig_list[j])
     
     i = 0
-    print(sig_list)
     while not sig_list == []:
         frag_list.append([])
         for i in range(dims[1]//4):
             frag_list[-1].append(sig_list[0])
             sig_list.pop(0)
-    print(frag_list)
 
-    print(dims[0]//4)
     return frag_list
-
-create_file(load("fin.png"), path="fin2.bc1")
-
-f, d = load_bc1_file(path="fin2.bc1")
-save(defragment_4x4(uncompress(f, d)), "fin2.png")
