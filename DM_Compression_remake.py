@@ -190,16 +190,16 @@ def get_color_signature(color):
 def patch_signature(patch, a, b):
     palette = get_palette(a, b)
     signature = ""
-
+    
     signature += get_color_signature(a)
     signature += get_color_signature(b)
-
+    # print(palette)
     for i in range(4):
         for j in range(4):
             signature += bin(find_color(palette, patch[i, j]))[2:].zfill(2)
-
+            # print(find_color(palette, patch[i, j]), bin(find_color(palette, patch[i, j]))[2:].zfill(2))
     signature = int(signature[::-1], 2)
-
+    
     return signature
 
 # Partie 3 méthode 1
@@ -228,7 +228,7 @@ def find_a_b(patch):
     min_r=min(r_list)
     min_g=min(g_list)
     min_b=min(b_list)
-    
+
     max_r=max(r_list)
     max_g=max(g_list)
     max_b=max(b_list)
@@ -284,7 +284,7 @@ def create_file(image, find_color_method=1, path=None):
 
     dim = padding(image)
     frag_im=fragment_4x4(dim)
-
+    
     for line in frag_im:
         for patch in line:
             if find_color_method == 1:
@@ -332,31 +332,42 @@ def sig_to_patch(sig):
     b = get_signature_color(b)
 
     palette = get_palette(a, b)
-
+    # print(palette)
     patch = np.zeros((4, 4, 3), dtype=np.uint8)
 
+    sig = sig[32:]
+    # print(len(sig))
     for i in range(4):
         for j in range(4):
-            num = sig[32+(i*4+j): 34+(i*4+j)]
+            
+            num = sig[((i*4)+j)*2] + sig[((i*4)+j)*2 + 1]
             num = int(num, 2)
-            patch[i, j] = palette[num].copy()
+            # print(num)
+            patch[i, j] = palette[num]
+            # print(palette, palette[num], num)
     
     return patch
 
 def uncompress(sig_list, dims):
     padded_dims = get_final_shape(np.empty(dims, dtype=np.uint8))
     frag_list = []
-
-    for i in range(0, padded_dims[0]//4):
+    print(sig_list)
+    for j in range(len(sig_list)):
+        sig_list[j] = sig_to_patch(sig_list[j])
+    
+    i = 0
+    print(sig_list)
+    while not sig_list == []:
         frag_list.append([])
-        for j in range(0, padded_dims[1]//4):
-            frag_list[-1].append(sig_to_patch(sig_list[i*4+j]))
+        for i in range(dims[1]//4):
+            frag_list[-1].append(sig_list[0])
+            sig_list.pop(0)
+    print(frag_list)
 
+    print(dims[0]//4)
     return frag_list
 
 create_file(load("fin.png"), path="fin2.bc1")
 
-sig_list, d = load_bc1_file(path="fin2.bc1")
-f = uncompress(sig_list, d)
-final = defragment_4x4(f)
-save(final, "fin2.png")
+f, d = load_bc1_file(path="fin2.bc1")
+save(defragment_4x4(uncompress(f, d)), "fin2.png")
