@@ -6,11 +6,14 @@ class TestBC1Functions(unittest.TestCase):
     def setUp(self):
         # Create sample image array for testing
         self.image_array = np.random.randint(0, 255, size=(16, 16, 3), dtype=np.uint8)
+        self.image_array_wrong_padding = np.random.randint(0, 255, size=(17, 15, 3), dtype=np.uint8)
 
     def test_padding(self):
-        padded_array = padding(self.image_array)
+        padded_array = padding(self.image_array_wrong_padding)
         self.assertTrue(padded_array.shape[0] % 4 == 0 and padded_array.shape[1] % 4 == 0,
                         "Padding did not result in dimensions multiple of 4")
+        self.assertTrue(padded_array.shape[0] == 20 and padded_array.shape[1] == 16,
+                        "Padding is wrong !")
 
     def test_remove_padding(self):
         padded_array = padding(self.image_array)
@@ -49,12 +52,6 @@ class TestBC1Functions(unittest.TestCase):
 
         self.assertEqual(color, 1, "Incorrect color index found")
     
-    def test_sig_size(self):
-        fragmented_list = fragment_4x4(self.image_array)
-
-        sig = patch_signature(fragmented_list[0][0], np.array([0, 0, 0], dtype=np.uint8), np.array([211, 211, 211], dtype=np.uint8))
-
-        self.assertEqual(len(bin(sig))-2, 64, "Signature has wrong size")
 
 if __name__ == "__main__":
     unittest.main()

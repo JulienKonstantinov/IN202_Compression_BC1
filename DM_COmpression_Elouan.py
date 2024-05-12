@@ -4,6 +4,7 @@ import numpy as np
 import scipy as sp
 import os
 from math import log10, sqrt
+from tkinter.filedialog import asksaveasfilename
 
 
 def load(filename):
@@ -63,6 +64,7 @@ def padding(matrice):
         lignes_a_ajouter = 0
 
     reste_colonnes = matrice.shape[1] % 4
+
     if reste_colonnes != 0:
         colonnes_a_ajouter = 4 - reste_colonnes
     else:
@@ -130,6 +132,7 @@ def defragment_4x4(array_list):
             defrag_array[i * 4 : i * 4 + 4, j * 4 : j * 4 + 4] = array_list[i][j]
 
     return defrag_array
+
 # QUESTION 4
 
 
@@ -141,7 +144,7 @@ def tronque(n: int, p: int) -> bin:
         n: entier à tronquer
         p: nb de bits à tronquer
     """
-    n = bin(n)[:-p]
+    n = n >> p
     return n
 
 
@@ -154,13 +157,11 @@ def get_palette(a, b):
     """
 
     palette = np.zeros([4, 3], dtype=np.uint8)
-    # palette[0] = a
-    # palette[3] = b
-    # palette[1] = 2/3 * a + b/3
-    # palette[2] = a/3 + 2/3 * b
+    palette[0] = a
+    palette[3] = b
+    palette[1] = 2/3 * a + b/3
+    palette[2] = a/3 + 2/3 * b
 
-    for i in range(4):
-        palette[i] = a * (3-i)/3 + b * i/3
     return palette
 
 
@@ -169,15 +170,39 @@ def get_palette(a, b):
 def find_color(palette, pixel):
     '''fonction qui permet de trouver la couleur d'une palette la plus proche de la couleur d'un pixel'''
     good_color=[]
-    for i in range(4): #on parcourt les lignes de la palette
-        somme=0
-        for j in range(3): #on parcourt les colonnes de la palette
-            # oui mais comme c'est du UNSIGNED int on a un overflow
-            # somme+=(abs(pixel[j]-palette[i][j])) #on fait la somme des écarts en valeurs absolues entre les coordonnées RGB du pixels et d'une couleur de la palette pour toutes les couleurs de la palette
-            if pixel[j] > palette[i][j]:
-                somme+= pixel[j]-palette[i][j]
-            else:
-                somme+= palette[i][j]-pixel[j]
-        good_color.append(somme) #on stockes toutes les sommes dans une liste
+    for i in range(4): #on parcourt les pixels de la palette
+        good_color.append(np.linalg.norm(pixel.astype(int) - palette[i])) #on stocke toutes les distances euclidiennes dans une liste
     minimum=min(good_color) 
-    return palette[good_color.index(minimum)] #on retourne la couleur de la palette dont l'écart des coordonnées RGB est le plus proche du pixel
+    return good_color.index(minimum) #on retourne l'indice de la couleur de la palette dont l'écart des coordonnées RGB est le plus proche du pixel
+
+# QUESTION 6
+
+def patch_signature()
+#Partie 3 question 1
+
+def find_a_b(patch):
+    r_max=0
+    g_max=0
+    b_max=0
+    for i in range(len(patch)):
+        if patch[i][0]>r_max:
+            r_max=patch[i][0]
+        if patch[i][1]>g_max:
+            g_max=patch[i][1]
+        if patch[i][2]>b_max:
+            b_max=patch[i][2]
+    return(r_max, g_max, b_max)
+
+
+# QUESTION 7 et 8
+def create_file(image,a,b):
+    dim = padding(image)
+    ftypes = (("text files", "*.txt"), ("All files", "*.*"))
+    path=asksaveasfilename(filetypes=ftypes)
+    file = open(path,'w')
+    file.write("BC1"+"\n"+str(dim.shape[0])+" "+str(dim.shape[1]))
+    patch=fragment_4x4(dim)
+    for i in len(patch):
+        print(i)
+        file.write(patch_signature(patch[i],a,b)+"\n")
+        

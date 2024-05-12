@@ -46,16 +46,9 @@ def psnr(original, compressed):
     return psnr
 
 
-# QUESTION 1
+### QUESTION 1
 
-
-def padding(matrice):
-    """
-    Ajoute des lignes et colonnes à la matrice donnée pour qu'elle soit fragmentable en blocs de 4x4
-
-    Paramètres:
-        matrice: la matrice à modifier
-    """
+def get_final_shape(matrice):
     reste_lignes = matrice.shape[0] % 4
 
     if reste_lignes != 0:
@@ -69,9 +62,20 @@ def padding(matrice):
     else:
         colonnes_a_ajouter = 0
 
+    return (matrice.shape[0]+lignes_a_ajouter, matrice.shape[1]+colonnes_a_ajouter)
+
+def padding(matrice):
+    """
+    Ajoute des lignes et colonnes à la matrice donnée pour qu'elle soit fragmentable en blocs de 4x4
+
+    Paramètres:
+        matrice: la matrice à modifier
+    """
+    lignes, colonnes = get_final_shape(matrice)
+
     # on crée une nouvelle matrice de la bonne taile que l'on remplit
     matrice2 = np.zeros(
-        [matrice.shape[0] + lignes_a_ajouter, matrice.shape[1] + colonnes_a_ajouter, 3],
+        [lignes, colonnes, 3],
         dtype=np.uint8,
     )
     for i in range(matrice.shape[0]):
@@ -79,7 +83,6 @@ def padding(matrice):
             matrice2[i, j] = matrice[i, j, :3]
 
     return matrice2
-
 
 def remove_padding(matrice2, lignes, colonnes):
     """
@@ -96,8 +99,7 @@ def remove_padding(matrice2, lignes, colonnes):
     return matrice
 
 
-# QUESTION 2
-
+### QUESTION 2
 
 def fragment_4x4(image_array):
     """
@@ -116,6 +118,7 @@ def fragment_4x4(image_array):
 
     return frag_list
 
+### QUESTION 3
 
 def defragment_4x4(array_list):
     """
@@ -132,8 +135,7 @@ def defragment_4x4(array_list):
 
     return defrag_array
 
-# QUESTION 4
-
+### QUESTION 4
 
 def tronque(n: int, p: int) -> bin:
     """
@@ -146,7 +148,6 @@ def tronque(n: int, p: int) -> bin:
     if p>0:
         n = n >> p
     return n
-
 
 def get_palette(a, b):
     """
@@ -164,8 +165,7 @@ def get_palette(a, b):
 
     return palette
 
-
-# QUESTION 5
+### QUESTION 5
 
 def find_color(palette, pixel):
     '''fonction qui permet de trouver la couleur d'une palette la plus proche de la couleur d'un pixel'''
@@ -175,32 +175,31 @@ def find_color(palette, pixel):
     minimum=min(good_color) 
     return good_color.index(minimum) #on retourne l'indice de la couleur de la palette dont l'écart des coordonnées RGB est le plus proche du pixel
 
-# QUESTION 6
-
-
-def get_all_indices(patch, a, b):
-    palette = get_palette(a, b)
-    indices = []
-    for i in range(3, -1, -1):
-        for j in range(3, -1, -1):
-            indices.append(bin(find_color(palette, patch[i, j]))[2:])
-    return indices 
+### QUESTION  6
 
 def get_color_signature(color):
-    signature = ""
-
-    signature += bin(tronque(color[2], 3))[2:]
-    signature += bin(tronque(color[1], 2))[2:]
-    signature += bin(tronque(color[0], 3))[2:]
-
-    return signature
+    sig = ""
+    for k in range(3):
+        if k == 1:
+            s = 2
+        else:
+            s = 3
+        sig += bin(tronque(color[k], s))[2:].zfill(8 -s)
+    return sig
 
 def patch_signature(patch, a, b):
-    signature = "".join(get_all_indices(patch, a, b))
-    signature += get_color_signature(b)
-    signature += get_color_signature(a)
+    palette = get_palette(a, b)
+    signature = ""
 
-    signature = int(signature, 2)
+    signature += get_color_signature(a)
+    signature += get_color_signature(b)
+
+    for i in range(4):
+        for j in range(4):
+            signature += bin(find_color(palette, patch[i, j]))[2:].zfill(2)
+
+    signature = int(signature[::-1], 2)
+
     return signature
 
 # Partie 3 méthode 1
@@ -220,15 +219,16 @@ def find_a_b(patch):
     r_list=[]
     g_list=[]
     b_list=[]
-    for i in range(len(patch)):
-        for j in range(len(patch[i])):
-            r_list.append(patch[i,j][0])
-            g_list.append(patch[i,j][1])
-            b_list.append(patch[i,j][2])
+    for i in range(4):
+        for j in range(4):
+            r_list.append(patch[i, j, 0])
+            g_list.append(patch[i, j, 1])
+            b_list.append(patch[i, j, 2])
     
     min_r=min(r_list)
     min_g=min(g_list)
     min_b=min(b_list)
+    
     max_r=max(r_list)
     max_g=max(g_list)
     max_b=max(b_list)
@@ -272,9 +272,9 @@ def find_a_b_2(patch):
     return (a,b)
 
 
+### QUESTION 7 ET 8
 
-# QUESTION 7 et 8
-def create_file(image, find_color_method = 1, path=None):
+def create_file(image, find_color_method=1, path=None):
     if not path:
         ftypes = (("BC1 Images", "*.bc1"), ("All files", "*.*"))
         path=asksaveasfilename(filetypes=ftypes)
@@ -284,6 +284,7 @@ def create_file(image, find_color_method = 1, path=None):
 
     dim = padding(image)
     frag_im=fragment_4x4(dim)
+
     for line in frag_im:
         for patch in line:
             if find_color_method == 1:
@@ -296,67 +297,66 @@ def create_file(image, find_color_method = 1, path=None):
             file.write(str(patch_signature(patch, a, b))+"\n")
     file.close()
 
+### QUESTION 9
 
-# QUESTION 9 et 10
-        
-def read_file(path=None):
+def load_bc1_file(path=None):
     if not path:
         ftypes = (("BC1 Images", "*.bc1"), ("All files", "*.*"))
         path = askopenfilename(filetypes=ftypes)
 
-    list_patch=[]
-    file=open(path,'r')
-    lines = file.readlines()
-    file.close()
-
+    with open(path, "r") as f:
+        lines = f.readlines()
+    
     if not lines[0].startswith("BC1"):
         return
     
-    dims = [int(x) for x in lines[1].strip().split(" ")]
-
+    im_dims = [int(x) for x in lines[1].strip().split(" ")]
+    sigs = []
     for line in lines[2:]:
-        list_patch.append(bin(int(line))[2:][::-1])
+        line = bin(int(line))[2:]
+        line = (64-len(line))*"0" + line
+        line = line[::-1]
+        sigs.append(line)
 
-    uncompressed_im = uncompress(dims, list_patch)
+    return sigs, im_dims
 
-    save(uncompressed_im, path.split(".")[0] + ".jpg")
+### QUESTION 10
 
-def get_color_from_sig(col):
-    r = col[0:5]
-    g = col[5:11]
-    b = col[11:16]
+def get_signature_color(sig):
+    r, g, b = sig[:5], sig[5:11], sig[11:]
+    return np.array([int(r, 2) << 3, int(g, 2) << 2, int(b, 2) << 3], dtype=np.uint8)
 
-    r = int(r+"0"*3, 2)
-    g = int(g+"0"*2, 2)
-    b = int(b+"0"*3, 2)
+def sig_to_patch(sig):
+    a, b = sig[0:16], sig[16:32]
+    a = get_signature_color(a)
+    b = get_signature_color(b)
 
-    return np.array([r, g, b], dtype=np.uint8)
-
-def sig_as_patch(signature):
-    signature = "0" * (64 - len(signature)) + signature
-    patch = np.empty((4, 4, 3), dtype=np.uint8)
-    a, b = get_color_from_sig(signature[0:16]), get_color_from_sig(signature[16:32])
     palette = get_palette(a, b)
-    print(palette)
-    x = 32
-    for i in range(3, -1, -1):
-        for j in range(3, -1, -1):
-            patch[i, j] = palette[int(signature[x:x+2], 2)]
-            x += 2
+
+    patch = np.zeros((4, 4, 3), dtype=np.uint8)
+
+    for i in range(4):
+        for j in range(4):
+            num = sig[32+(i*4+j): 34+(i*4+j)]
+            num = int(num, 2)
+            patch[i, j] = palette[num].copy()
+    
     return patch
 
-def uncompress(dims, list_patch, path=None):
-    final = []
+def uncompress(sig_list, dims):
+    padded_dims = get_final_shape(np.empty(dims, dtype=np.uint8))
+    frag_list = []
 
-    for i in range(dims[0]//4):
-        final.append([])
-        for j in range(dims[1]//4):
-            
-            final[-1].append(sig_as_patch(list_patch[i*4 + j]))
-    
-    final = defragment_4x4(final)
-    return final
+    for i in range(0, padded_dims[0]//4):
+        frag_list.append([])
+        for j in range(0, padded_dims[1]//4):
+            frag_list[-1].append(sig_to_patch(sig_list[i*4+j]))
 
+    return frag_list
 
-# create_file(load("toto.png"), path="toto.bc1")
-read_file("fin.bc1")
+create_file(load("fin.png"), path="fin2.bc1")
+
+sig_list, d = load_bc1_file(path="fin2.bc1")
+f = uncompress(sig_list, d)
+final = defragment_4x4(f)
+save(final, "fin2.png")
