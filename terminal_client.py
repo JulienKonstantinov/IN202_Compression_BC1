@@ -50,6 +50,6 @@ while True:
             except Exception as e:
                 print(f"An error occured: {e}")
             else:
-                print("Compression successful")
+                print("Decompression successful")
         else:
             print("Action aborted")
