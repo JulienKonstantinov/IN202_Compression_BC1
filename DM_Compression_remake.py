@@ -234,7 +234,7 @@ def find_a_b(patch):
     r_list=[]
     g_list=[]
     b_list=[]
-    for i in range(4):
+    for i in range(4): #on parcourt le patch et on ajoute les valeurs rgb aux trois listes
         for j in range(4):
             r_list.append(patch[i, j, 0])
             g_list.append(patch[i, j, 1])
@@ -264,16 +264,16 @@ def find_a_b_2(patch):
     r_list=[]
     g_list=[]
     b_list=[]
-    for i in range(len(patch)):
+    for i in range(len(patch)): #on parcourt le patch et on ajoute les valeurs rgb aux trois listes
         for j in range(len(patch[i])):
             r_list.append(patch[i,j][0])
             g_list.append(patch[i,j][1])
             b_list.append(patch[i,j][2])
 
-    minus_r=np.mean(r_list)-np.std(r_list)
+    minus_r=np.mean(r_list)-np.std(r_list) #cas de la moyenne moins l'écart type
     minus_g=np.mean(g_list)-np.std(g_list)
     minus_b=np.mean(b_list)-np.std(b_list)
-    plus_r=np.mean(r_list)+np.std(r_list)
+    plus_r=np.mean(r_list)+np.std(r_list) #cas de la moyenne plus l'écart type
     plus_g=np.mean(g_list)+np.std(g_list)
     plus_b=np.mean(b_list)+np.std(b_list)
 
@@ -303,10 +303,10 @@ def create_file(image, find_color_method=1, path=None):
     """
     if not path:
         ftypes = (("BC1 Images", "*.bc1"), ("All files", "*.*"))
-        path=asksaveasfilename(filetypes=ftypes)
+        path=asksaveasfilename(filetypes=ftypes) #demander à l'utilisateur où il veut sauvegarder le fichier
 
     file = open(path,'w')
-    file.write("BC1"+"\n"+str(image.shape[0])+" "+str(image.shape[1])+"\n")
+    file.write("BC1"+"\n"+str(image.shape[0])+" "+str(image.shape[1])+"\n") #écriture BC1 et dimensions de l'image
 
     dim = padding(image)
     frag_im=fragment_4x4(dim)
@@ -331,12 +331,12 @@ def load_bc1_file(path=None):
     """
     if not path:
         ftypes = (("BC1 Images", "*.bc1"), ("All files", "*.*"))
-        path = askopenfilename(filetypes=ftypes)
+        path = askopenfilename(filetypes=ftypes) #demander à l'utilisateur quel fichier il souhaite ouvrir
 
     with open(path, "r") as f:
         lines = f.readlines()
     
-    if not lines[0].startswith("BC1"):
+    if not lines[0].startswith("BC1"): #si la première ligne ne contient pas BC1, on s'arrête
         return
     
     im_dims = [int(x) for x in lines[1].strip().split(" ")]
